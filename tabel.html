@@ -9,15 +9,12 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
     <style>
-      /* GRADASI MENYESUAIKAN BERANDA BG */
       body {
         font-family: "Inter", sans-serif;
         background: linear-gradient(135deg, #FDFBF9 0%, #F1DABF 100%);
         background-attachment: fixed;
         color: #362417;
       }
-
-      /* Efek Glass Card */
       .glass-card {
         background: rgba(255, 255, 255, 0.8);
         backdrop-filter: blur(12px);
@@ -42,20 +39,20 @@
         </div>
 
         <div class="glass-card p-6 rounded-3xl border-2 border-[#362417] shadow-xl">
-          <p class="text-[#92817A] text-[17px] font-bold uppercase mb-4 flex items-center gap-2">
-             <i data-lucide="search" class="w-7 h-7"></i> Klasifikasi Cluster
+          <p class="text-[#92817A] text-[12px] font-bold uppercase mb-4 flex items-center gap-2">
+             <i data-lucide="search" class="w-5 h-5"></i> Klasifikasi Cluster
           </p>
           <div class="grid grid-cols-3 gap-3">
             <div class="bg-white/40 p-4 rounded-2xl border-2 border-[#F1DABF] text-center">
-              <p class="text-[#92817A] text-[17px] font-bold uppercase mb-1">Casual</p>
+              <p class="text-[#92817A] text-[10px] font-bold uppercase mb-1">Casual</p>
               <h4 id="totalCasual" class="text-2xl font-black text-[#362417]">0</h4>
             </div>
             <div class="bg-white/40 p-4 rounded-2xl border-2 border-[#F1DABF] text-center">
-              <p class="text-[#92817A] text-[17px] font-bold uppercase mb-1">Formal</p>
+              <p class="text-[#92817A] text-[10px] font-bold uppercase mb-1">Formal</p>
               <h4 id="totalFormal" class="text-2xl font-black text-[#362417]">0</h4>
             </div>
             <div class="bg-white/40 p-4 rounded-2xl border-2 border-[#F1DABF] text-center">
-              <p class="text-[#92817A] text-[17px] font-bold uppercase mb-1">Simple</p>
+              <p class="text-[#92817A] text-[10px] font-bold uppercase mb-1">Simple</p>
               <h4 id="totalSimple" class="text-2xl font-black text-[#362417]">0</h4>
             </div>
           </div>
@@ -66,7 +63,7 @@
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
-              <tr class="bg-[#362417] text-[#F1DABF] uppercase text-[12px] font-black tracking-widest">
+              <tr class="bg-[#362417] text-[#F1DABF] uppercase text-[10px] font-black tracking-widest">
                 <th class="p-5 border-b-2 border-[#F1DABF]/20">Nama</th>
                 <th class="p-5 border-b-2 border-[#F1DABF]/20">Pakaian</th>
                 <th class="p-5 border-b-2 border-[#F1DABF]/20">Warna</th>
@@ -75,11 +72,9 @@
                 <th class="p-5 border-b-2 border-[#F1DABF]/20">Cluster</th>
               </tr>
             </thead>
-            <tbody id="tableBody" class="text-sm text-[#362417]">
-                </tbody>
+            <tbody id="tableBody" class="text-sm text-[#362417]"></tbody>
           </table>
         </div>
-
         <div class="p-6 bg-white/20 border-t border-[#F1DABF] flex justify-center items-center gap-2" id="paginationControls"></div>
       </div>
     </main>
@@ -94,7 +89,6 @@
       let currentPage = 1;
       const itemsPerPage = 10;
 
-      // Injeksi Header sesuai sistem yang kamu buat
       async function injectHeader() {
         try {
           const response = await fetch("header.html");
@@ -105,15 +99,12 @@
       }
       injectHeader();
 
-      // Fetch Data Supabase
       async function fetchData() {
         const { data, error } = await _supabase
           .from("hasil_klasifikasi")
           .select("*")
           .order("id", { ascending: false });
-        
-        if (error) { console.error("Error:", error.message); return; }
-        
+        if (error) return;
         allData = data;
         updateStats();
         renderTable();
@@ -121,15 +112,16 @@
 
       function updateStats() {
         document.getElementById("totalData").innerText = allData.length;
-        let c = 0, f = 0, s = 0;
-        allData.forEach((r) => {
-          if (r.label_hasil === "Casual") c++;
-          else if (r.label_hasil === "Formal") f++;
-          else if (r.label_hasil === "Simple") s++;
-        });
-        document.getElementById("totalCasual").innerText = c;
-        document.getElementById("totalFormal").innerText = f;
-        document.getElementById("totalSimple").innerText = s;
+        document.getElementById("totalCasual").innerText = allData.filter(r => r.label_hasil === "Casual").length;
+        document.getElementById("totalFormal").innerText = allData.filter(r => r.label_hasil === "Formal").length;
+        document.getElementById("totalSimple").innerText = allData.filter(r => r.label_hasil === "Simple").length;
+      }
+
+      function getBadgeStyle(label) {
+        if (label === "Formal") return "bg-[#FECACA] text-[#991B1B] border-[#991B1B]";
+        if (label === "Casual") return "bg-[#BBF7D0] text-[#166534] border-[#166534]";
+        if (label === "Simple") return "bg-[#BFDBFE] text-[#1E40AF] border-[#1E40AF]";
+        return "bg-white text-[#362417] border-[#362417]";
       }
 
       function renderTable() {
@@ -148,7 +140,9 @@
             <td class="p-5 text-[17px]">${row.aksesoris}</td>
             <td class="p-5 text-[17px] font-bold text-[#92817A]">${row.lokasi}</td>
             <td class="p-5">
-              <span class="px-3 py-1 rounded-full bg-[#362417] text-[#F1DABF] border border-[#F1DABF] font-black text-[12px] uppercase shadow-sm">${row.label_hasil}</span>
+              <span class="px-3 py-1 rounded-full border font-black text-[12px] uppercase shadow-sm ${getBadgeStyle(row.label_hasil)}">
+                ${row.label_hasil}
+              </span>
             </td>
           `;
           tableBody.appendChild(tr);
@@ -160,22 +154,15 @@
         const controls = document.getElementById("paginationControls");
         const totalPages = Math.ceil(allData.length / itemsPerPage) || 1;
         controls.innerHTML = "";
-
-        // Tombol Previous
         if (currentPage > 1) {
           controls.appendChild(createNavBtn("chevron-left", () => { currentPage--; renderTable(); }));
         }
-
-        // Angka Halaman
         let startPage = Math.max(1, currentPage - 1);
         let endPage = Math.min(totalPages, startPage + 2);
         if (endPage - startPage < 2) { startPage = Math.max(1, endPage - 2); }
-
         for (let i = startPage; i <= endPage; i++) {
           controls.appendChild(createPageBtn(i));
         }
-
-        // Tombol Next
         if (currentPage < totalPages) {
           controls.appendChild(createNavBtn("chevron-right", () => { currentPage++; renderTable(); }));
         }
