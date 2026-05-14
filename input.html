@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistem Klasifikasi Fashion - Responden</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+      /* GRADASI MENYESUAIKAN BERANDA BG */
+      body {
+        font-family: "Inter", sans-serif;
+        background: linear-gradient(135deg, #FDFBF9 0%, #F1DABF 100%);
+        background-attachment: fixed;
+        color: #362417;
+      }
+      
+      .choice-chip:checked + div {
+        border-color: #362417;
+        background-color: #f1dabf;
+        color: #362417;
+      }
+      
+      .modal-overlay { transition: opacity 0.3s ease; }
+      .modal-content { transition: transform 0.3s ease; }
+
+      /* Form Card Styling */
+      .glass-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen pb-20">
+    <div id="header-target"></div>
+
+    <main class="max-w-2xl mx-auto px-6 space-y-8 mt-10">
+      <div class="glass-card p-8 rounded-3xl shadow-2xl border border-[#F1DABF] relative">
+        <button
+          type="button"
+          onclick="toggleModal(true)"
+          class="absolute top-6 right-6 text-[#92817A] hover:text-[#362417] transition-colors"
+        >
+          <i data-lucide="info" class="w-6 h-6"></i>
+        </button>
+
+        <form id="predictionForm" class="space-y-8">
+          <h2 class="text-xl font-black text-[#362417] uppercase tracking-tight">Formulir Responden</h2>
+
+          <div>
+            <label class="flex items-center gap-2 text-sm font-bold text-[#362417] mb-2">
+              <i data-lucide="user" class="w-4 h-4"></i> Nama Responden
+            </label>
+            <input
+              type="text"
+              id="nama"
+              placeholder="Masukkan nama lengkap"
+              class="w-full border-[#F1DABF] border-2 p-4 rounded-2xl focus:ring-4 focus:ring-[#F1DABF]/50 focus:border-[#362417] focus:outline-none transition-all bg-white/50"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="flex items-center gap-2 text-sm font-bold text-[#362417] mb-3">
+              <i data-lucide="users" class="w-4 h-4"></i> Gender
+            </label>
+            <div class="grid grid-cols-2 gap-4">
+              <label class="cursor-pointer">
+                <input type="radio" name="gender" value="pria" class="peer sr-only choice-chip" checked onchange="toggleInputs()" />
+                <div class="p-4 border-2 border-[#F1DABF] rounded-2xl text-center transition-all hover:border-[#362417] bg-white/30">
+                  <i data-lucide="user" class="w-6 h-6 mx-auto mb-1 text-[#92817A]"></i>
+                  <span class="text-sm font-bold">Pria</span>
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="gender" value="wanita" class="peer sr-only choice-chip" onchange="toggleInputs()" />
+                <div class="p-4 border-2 border-[#F1DABF] rounded-2xl text-center transition-all hover:border-[#362417] bg-white/30">
+                  <i data-lucide="user-round" class="w-6 h-6 mx-auto mb-1 text-[#92817A]"></i>
+                  <span class="text-sm font-bold">Wanita</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-3">
+              <label class="flex items-center gap-2 text-sm font-bold text-[#362417] mb-1">
+                <i data-lucide="shirt" class="w-4 h-4"></i> Atasan
+              </label>
+              <select id="atasan" class="w-full border-[#F1DABF] border-2 p-3 rounded-xl focus:ring-2 focus:ring-[#362417] focus:outline-none bg-white font-medium" onchange="checkOther('atasan')">
+                <option value="kemeja">Kemeja</option>
+                <option value="batik">Batik</option>
+                <option value="hoodie">Hoodie</option>
+                <option value="polo shirt">Polo Shirt</option>
+                <option value="jaket">Jaket</option>
+                <option value="kaos">Kaos / T-Shirt</option>
+                <option value="blazer">Blazer</option>
+                <option value="gamis" id="optGamis" class="hidden">Gamis</option>
+                <option value="lainnya">Lainnya...</option>
+              </select>
+              <input type="text" id="atasan_lainnya" placeholder="Sebutkan atasan" class="hidden w-full border-[#F1DABF] border-2 p-3 rounded-xl focus:outline-none bg-white" />
+            </div>
+            <div class="space-y-3">
+              <label class="flex items-center gap-2 text-sm font-bold text-[#362417] mb-1">
+                <i data-lucide="columns-2" class="w-4 h-4"></i> Bawahan
+              </label>
+              <select id="bawahan" class="w-full border-[#F1DABF] border-2 p-3 rounded-xl focus:ring-2 focus:ring-[#362417] focus:outline-none bg-white font-medium" onchange="checkOther('bawahan')">
+                <option value="celana jeans">Celana Jeans</option>
+                <option value="celana kain">Celana Kain</option>
+                <option value="celana cargo">Celana Cargo</option>
+                <option value="celana chino">Celana Chino</option>
+                <option value="kulot">Kulot</option>
+                <option value="rok panjang" id="optRok" class="hidden">Rok Panjang</option>
+                <option value="lainnya">Lainnya...</option>
+              </select>
+              <input type="text" id="bawahan_lainnya" placeholder="Sebutkan bawahan" class="hidden w-full border-[#F1DABF] border-2 p-3 rounded-xl focus:outline-none bg-white" />
+            </div>
+          </div>
+
+          <div>
+            <label class="flex items-center gap-2 text-sm font-bold text-[#362417] mb-2">
+              <i data-lucide="palette" class="w-4 h-4"></i> Warna Dominan
+            </label>
+            <input type="text" id="warna" placeholder="Contoh: Hitam, Biru Navy, Putih" class="w-full border-[#F1DABF] border-2 p-4 rounded-2xl focus:outline-none bg-white/50" required />
+          </div>
+
+          <div>
+            <label class="flex items-center gap-2 text-sm font-bold text-[#362417] mb-3">
+              <i data-lucide="watch" class="w-4 h-4"></i> Aksesoris
+            </label>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <label class="cursor-pointer">
+                <input type="checkbox" name="aksesoris" value="jam tangan" class="peer sr-only choice-chip" />
+                <div class="p-2 border-2 border-[#F1DABF] rounded-xl text-center text-[10px] font-bold bg-white/20">Jam Tangan</div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="checkbox" name="aksesoris" value="cincin" class="peer sr-only choice-chip" />
+                <div class="p-2 border-2 border-[#F1DABF] rounded-xl text-center text-[10px] font-bold bg-white/20">Cincin</div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="checkbox" name="aksesoris" value="gelang" class="peer sr-only choice-chip" />
+                <div class="p-2 border-2 border-[#F1DABF] rounded-xl text-center text-[10px] font-bold bg-white/20">Gelang</div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="checkbox" name="aksesoris" value="kacamata" class="peer sr-only choice-chip" />
+                <div class="p-2 border-2 border-[#F1DABF] rounded-xl text-center text-[10px] font-bold bg-white/20">Kacamata</div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="checkbox" name="aksesoris" value="kalung" class="peer sr-only choice-chip" />
+                <div class="p-2 border-2 border-[#F1DABF] rounded-xl text-center text-[10px] font-bold bg-white/20">Kalung</div>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="flex items-center gap-2 text-sm font-bold text-[#362417] mb-3">
+              <i data-lucide="map-pin" class="w-4 h-4"></i> Lokasi Observasi
+            </label>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <label class="cursor-pointer">
+                <input type="radio" name="lokasi" value="GSG" class="peer sr-only choice-chip" checked />
+                <div class="p-3 border-2 border-[#F1DABF] rounded-xl text-center text-[10px] font-bold bg-white/20">GSG</div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="lokasi" value="Parkiran" class="peer sr-only choice-chip" />
+                <div class="p-3 border-2 border-[#F1DABF] rounded-xl text-center text-[10px] font-bold bg-white/20">Parkiran</div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="lokasi" value="Amphi Dalam" class="peer sr-only choice-chip" />
+                <div class="p-3 border-2 border-[#F1DABF] rounded-xl text-center text-[10px] font-bold bg-white/20">Amphi</div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="lokasi" value="Kantin" class="peer sr-only choice-chip" />
+                <div class="p-3 border-2 border-[#F1DABF] rounded-xl text-center text-[10px] font-bold bg-white/20">Kantin</div>
+              </label>
+            </div>
+          </div>
+
+          <div id="hijabSection" class="hidden pt-6 border-t border-[#F1DABF] text-center">
+            <label class="block text-sm font-bold mb-3 uppercase tracking-widest text-[10px]">Gunakan Hijab?</label>
+            <div class="flex gap-4">
+              <label class="flex-1 cursor-pointer">
+                <input type="radio" name="hijab" value="ya" class="peer sr-only choice-chip" />
+                <div class="p-3 border-2 border-[#F1DABF] rounded-xl text-xs font-bold bg-white/20">Ya</div>
+              </label>
+              <label class="flex-1 cursor-pointer">
+                <input type="radio" name="hijab" value="tidak" class="peer sr-only choice-chip" checked />
+                <div class="p-3 border-2 border-[#F1DABF] rounded-xl text-xs font-bold bg-white/20">Tidak</div>
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" id="btnSubmit" class="w-full bg-[#362417] text-[#F1DABF] font-black py-5 rounded-2xl hover:bg-[#F1DABF] hover:text-[#362417] transition-all shadow-xl text-lg uppercase tracking-widest border-2 border-[#362417]">
+            Analisis Gaya
+          </button>
+        </form>
+      </div>
+    </main>
+
+    <div id="infoModal" class="hidden fixed inset-0 z-50 bg-[#362417]/80 flex items-center justify-center p-6 modal-overlay">
+      <div class="bg-white max-w-lg w-full rounded-3xl shadow-2xl overflow-hidden modal-content scale-95 border-2 border-[#362417]">
+        <div class="bg-[#362417] p-6 flex justify-between items-center text-[#F1DABF]">
+          <h2 class="font-bold text-xl flex items-center gap-2"><i data-lucide="info"></i> Aturan Klasifikasi</h2>
+          <button onclick="toggleModal(false)"><i data-lucide="x"></i></button>
+        </div>
+        <div class="p-8 space-y-4 text-sm font-medium">
+          <p>Sistem menentukan gaya secara otomatis:</p>
+          <ul class="space-y-2">
+            <li class="flex gap-2"><b>Casual:</b> Hoodie atau ≥ 2 Aksesoris.</li>
+            <li class="flex gap-2"><b>Formal:</b> Batik, Gamis, Blazer, Rok, atau Hijab.</li>
+            <li class="flex gap-2"><b>Simple:</b> Selain kriteria di atas.</li>
+          </ul>
+          <button onclick="toggleModal(false)" class="w-full bg-[#F1DABF] text-[#362417] font-bold py-3 rounded-xl border border-[#362417]">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      lucide.createIcons();
+      const SUPABASE_URL = "https://fimhhfpgvkzovazaybjj.supabase.co";
+      const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpbWhoZnBndmt6b3ZhemF5YmpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MjMwMTIsImV4cCI6MjA5NDI5OTAxMn0.kKXEuqDy2UP2IbhnP8-vi-VTJ5ZfONSeUhFbmhHEiG0";
+      const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      // Injeksi Header
+      async function injectHeader() {
+        try {
+          const response = await fetch('header.html');
+          const html = await response.text();
+          document.getElementById('header-target').innerHTML = html;
+          lucide.createIcons();
+        } catch (e) { console.error(e); }
+      }
+      injectHeader();
+
+      // UI Logics
+      function toggleModal(s) {
+        const m = document.getElementById("infoModal");
+        const c = m.querySelector(".modal-content");
+        if(s) { m.classList.remove("hidden"); setTimeout(() => { m.style.opacity = "1"; c.classList.replace("scale-95", "scale-100"); }, 10); }
+        else { m.style.opacity = "0"; c.classList.replace("scale-100", "scale-95"); setTimeout(() => m.classList.add("hidden"), 300); }
+      }
+
+      function checkOther(t) {
+        const s = document.getElementById(t);
+        const i = document.getElementById(t + "_lainnya");
+        i.classList.toggle("hidden", s.value !== "lainnya");
+      }
+
+      function toggleInputs() {
+        const g = document.querySelector('input[name="gender"]:checked').value;
+        const h = document.getElementById("hijabSection");
+        const r = document.getElementById("optRok");
+        const gm = document.getElementById("optGamis");
+        h.classList.toggle("hidden", g === "pria");
+        r.classList.toggle("hidden", g === "pria");
+        gm.classList.toggle("hidden", g === "pria");
+      }
+
+      // SUBMIT LOGIC
+      document.getElementById("predictionForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btnSubmit");
+        btn.disabled = true; btn.innerText = "Processing...";
+
+        const nama = document.getElementById("nama").value;
+        const gender = document.querySelector('input[name="gender"]:checked').value;
+        const warna = document.getElementById("warna").value;
+        const lokasi = document.querySelector('input[name="lokasi"]:checked').value;
+        const hijab = gender === "wanita" ? document.querySelector('input[name="hijab"]:checked').value : "tidak";
+        
+        let a = document.getElementById("atasan").value;
+        if(a === "lainnya") a = document.getElementById("atasan_lainnya").value;
+        let b = document.getElementById("bawahan").value;
+        if(b === "lainnya") b = document.getElementById("bawahan_lainnya").value;
+
+        const aks = Array.from(document.querySelectorAll('input[name="aksesoris"]:checked')).map(x => x.value);
+        
+        // DECISION TREE
+        let label = "Simple";
+        const combinedText = (a + " " + b).toLowerCase();
+        if(combinedText.includes("hoodie")) label = "Casual";
+        else if(combinedText.includes("batik") || combinedText.includes("gamis") || combinedText.includes("blazer") || combinedText.includes("rok") || hijab === "ya") label = "Formal";
+        else if(aks.length >= 2) label = "Casual";
+
+        const pakaianLengkap = `${a} + ${b}${hijab === "ya" ? " + hijab" : ""}`;
+
+        const { error } = await _supabase.from("hasil_klasifikasi").insert([{
+          nama_responden: nama, jenis_pakaian: pakaianLengkap, warna_dominan: warna,
+          aksesoris: aks.join(", ") || "tidak ada", gender, lokasi, label_hasil: label
+        }]);
+
+        if(!error) {
+          localStorage.setItem("hasil_terakhir", JSON.stringify({ nama, pakaian: pakaianLengkap, warna, aksesoris: aks.join(", "), lokasi, label }));
+          window.location.href = "hasil.html";
+        } else {
+          alert(error.message); btn.disabled = false; btn.innerText = "Analisis Gaya";
+        }
+      });
+    </script>
+  </body>
+</html>
